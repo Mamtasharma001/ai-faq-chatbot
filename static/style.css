@@ -1,0 +1,43 @@
+/* Custom scrollbar behaviors */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Glassmorphic elements */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Print Specific styles to hide everything except the chat content during print-to-pdf */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #view-chat, #view-chat * {
+    visibility: visible;
+  }
+  #view-chat {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  header, footer, aside, button, input {
+    display: none !important;
+  }
+}
