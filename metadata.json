@@ -1,0 +1,6 @@
+{
+  "name": "AI FAQ Chatbot",
+  "description": "An intelligent FAQ chatbot web application built with advanced NLP (TF-IDF & Cosine Similarity) and styled in an immersive Bento Grid glassmorphism layout, featuring speech synthesis, voice search, live admin portal, analytics dashboards, and PDF chat log exporting.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
