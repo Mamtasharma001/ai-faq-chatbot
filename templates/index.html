@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI FAQ Chatbot - Bento Grid Terminal</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen overflow-x-hidden selection:bg-sky-500/20 selection:text-sky-300">
+    
+    <!-- HEADER BAR -->
+    <header class="h-16 border-b border-slate-900 bg-slate-900/40 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/10">
+          <svg class="w-5 h-5 text-slate-950 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">AI FAQ Chatbot</h1>
+          <p class="text-[10px] text-slate-500 font-mono">MODEL CORE: FLASK + SPACY ENGINE</p>
+        </div>
+      </div>
+
+      <!-- Navigation tabs -->
+      <div class="flex items-center gap-1.5 bg-slate-950/80 p-1 border border-slate-900 rounded-xl">
+        <button id="tab-chat-btn" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 bg-sky-500 text-slate-950 shadow-md shadow-sky-500/15 transition-all">
+          Chat Terminal
+        </button>
+        <button id="tab-analytics-btn" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all">
+          Analytics
+        </button>
+        <button id="tab-admin-btn" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-900/50 transition-all">
+          FAQ Console
+        </button>
+      </div>
+
+      <!-- Live pulsing dot -->
+      <div class="hidden md:flex items-center gap-4 text-xs font-medium uppercase tracking-wider text-slate-400">
+        <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[10px] text-emerald-400 font-bold font-mono">Flask Server Active</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWS WRAPPER -->
+    <div class="flex-1 flex flex-col min-h-0 relative">
+      
+      <!-- VIEW 1: CHAT WORKSPACE -->
+      <main id="view-chat" class="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row p-4 gap-4 overflow-hidden h-[calc(100vh-64px-40px)]">
+        
+        <!-- Left Sidebar: Search History + Quick Topics -->
+        <aside class="w-full lg:w-72 flex flex-col gap-4 flex-shrink-0 h-full overflow-y-auto lg:overflow-hidden">
+          
+          <!-- Search History -->
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 flex-1 flex flex-col overflow-hidden backdrop-blur-sm min-h-[220px]">
+            <div class="flex items-center justify-between mb-4 flex-shrink-0">
+              <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Search History
+              </h2>
+              <button id="clear-history-btn" class="text-[10px] text-rose-500 font-bold hover:underline">Clear</button>
+            </div>
+            <div id="history-list" class="flex-1 overflow-y-auto pr-1 space-y-2.5 scrollbar-thin">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Suggested Queries -->
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 h-64 flex flex-col overflow-hidden backdrop-blur-sm">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-3 flex-shrink-0 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Quick Topics
+            </h2>
+            <div class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2">
+              <button class="suggest-btn w-full text-left px-3 py-2 bg-slate-950/40 hover:bg-slate-900/50 hover:border-sky-500/30 border border-slate-900/80 rounded-xl text-xs text-slate-400 hover:text-sky-400 transition-all flex items-center justify-between group">
+                <span class="truncate">What is your refund policy?</span>
+                <svg class="w-3 h-3 text-slate-600 group-hover:text-sky-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              <button class="suggest-btn w-full text-left px-3 py-2 bg-slate-950/40 hover:bg-slate-900/50 hover:border-sky-500/30 border border-slate-900/80 rounded-xl text-xs text-slate-400 hover:text-sky-400 transition-all flex items-center justify-between group">
+                <span class="truncate">How do I reset my password?</span>
+                <svg class="w-3 h-3 text-slate-600 group-hover:text-sky-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              <button class="suggest-btn w-full text-left px-3 py-2 bg-slate-950/40 hover:bg-slate-900/50 hover:border-sky-500/30 border border-slate-900/80 rounded-xl text-xs text-slate-400 hover:text-sky-400 transition-all flex items-center justify-between group">
+                <span class="truncate">Do you have an API?</span>
+                <svg class="w-3 h-3 text-slate-600 group-hover:text-sky-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              <button class="suggest-btn w-full text-left px-3 py-2 bg-slate-950/40 hover:bg-slate-900/50 hover:border-sky-500/30 border border-slate-900/80 rounded-xl text-xs text-slate-400 hover:text-sky-400 transition-all flex items-center justify-between group">
+                <span class="truncate">How to enable multi-factor authentication?</span>
+                <svg class="w-3 h-3 text-slate-600 group-hover:text-sky-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center: Chat Window -->
+        <section class="flex-1 flex flex-col bg-slate-900/10 border border-slate-900 rounded-2xl overflow-hidden backdrop-blur-sm h-full">
+          <!-- Chat header bar -->
+          <div class="px-4 py-2 bg-slate-900/20 border-b border-slate-950/50 flex justify-between items-center text-xs">
+            <span class="text-slate-500 font-mono">Status: Processing natural queries via TF-IDF</span>
+            <div class="flex items-center gap-3">
+              <button id="tts-toggle-btn" class="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span>TTS <span id="tts-status">Off</span></span>
+              </button>
+              <button id="clear-chat-btn" class="text-slate-500 hover:text-rose-400 flex items-center gap-1 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <span>Clear Screen</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Message list -->
+          <div id="message-list" class="flex-1 p-5 overflow-y-auto space-y-5 scrollbar-thin scrollbar-thumb-slate-900">
+            <!-- Bot Welcome -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+              </div>
+              <div class="max-w-[75%] flex flex-col">
+                <div class="p-4 rounded-2xl rounded-tl-none bg-slate-900/60 border border-slate-900/80 text-slate-300">
+                  <p class="text-xs sm:text-sm leading-relaxed">Hello! I am your AI FAQ Assistant. Ask me questions about our platform, security, or pricing, and I'll match them to our FAQ library immediately using advanced spaCy NLP processing!</p>
+                </div>
+                <span class="text-[9px] text-slate-600 mt-1.5 font-mono">09:00 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Typing indicator -->
+          <div id="typing-indicator" class="hidden px-5 py-3 flex items-center gap-3.5">
+            <div class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"></path></svg>
+            </div>
+            <div class="bg-slate-900/30 border border-slate-900/60 p-4 rounded-2xl rounded-tl-none max-w-[80%] flex items-center gap-3">
+              <div class="flex gap-1.5">
+                <span class="w-2 h-2 bg-sky-500 rounded-full animate-bounce"></span>
+                <span class="w-2 h-2 bg-sky-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                <span class="w-2 h-2 bg-sky-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+              </div>
+              <span class="text-[11px] font-medium text-slate-500 font-mono uppercase tracking-wider">Processing NLP Vectors...</span>
+            </div>
+          </div>
+
+          <!-- Chat bottom input -->
+          <div class="p-4 bg-slate-900/30 border-t border-slate-900 flex gap-3 items-center flex-shrink-0">
+            <button id="mic-btn" class="p-3 rounded-xl border bg-slate-950/80 border-slate-900 text-slate-400 hover:text-white transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            </button>
+            <input type="text" id="chat-input" placeholder="Type your support question here..." class="flex-1 bg-slate-950/80 border border-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500/50 text-slate-100 placeholder-slate-600 transition-all font-medium">
+            <button id="send-btn" class="p-3 rounded-xl bg-sky-500 text-slate-950 font-bold transition-all flex items-center justify-center">
+              <svg class="w-4 h-4 shadow-lg shadow-sky-500/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- Right Sidebar: Similarity gauge + Top 3 matches -->
+        <aside class="w-full lg:w-72 flex flex-col gap-4 flex-shrink-0 h-full overflow-y-auto lg:overflow-hidden">
+          
+          <!-- Similarity Confidence gauge -->
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 flex flex-col items-center backdrop-blur-sm relative overflow-hidden">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-4 w-full flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 00-2 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"></path></svg> NLP Confidence
+            </h2>
+            
+            <div class="relative w-32 h-32 flex items-center justify-center my-2">
+              <svg class="w-full h-full -rotate-90">
+                <circle cx="64" cy="64" r="52" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-950/80 border" />
+                <circle id="gauge-circle" cx="64" cy="64" r="52" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="326.72" stroke-dashoffset="326.72" class="text-slate-600 transition-all duration-700 ease-out" />
+              </svg>
+              <div class="absolute text-center">
+                <span id="gauge-percent" class="text-3xl font-extrabold tracking-tight">0</span>
+                <span class="text-xs text-slate-500 font-bold">%</span>
+                <div id="gauge-rating" class="text-[9px] font-extrabold uppercase font-mono tracking-wider mt-0.5 text-slate-500">No Query</div>
+              </div>
+            </div>
+
+            <div class="w-full mt-4 p-3 bg-slate-950/40 border border-slate-900 rounded-xl text-[10px] space-y-1.5 text-slate-500 font-mono">
+              <div class="flex justify-between">
+                <span>Matched FAQ:</span>
+                <span id="stat-matched-text" class="text-slate-300 font-semibold truncate max-w-[120px]">None</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Latency:</span>
+                <span id="stat-latency-text" class="text-emerald-400 font-semibold">0ms</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 3 Match Bars -->
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 flex-1 flex flex-col overflow-hidden backdrop-blur-sm min-h-[180px]">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-4 flex-shrink-0 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Top Similar Matches
+            </h2>
+            <div id="top-matches-bars" class="flex-1 overflow-y-auto pr-1 space-y-4">
+              <div class="h-full flex flex-col items-center justify-center text-center p-4">
+                <p class="text-xs text-slate-600">No matching logs active.</p>
+              </div>
+            </div>
+          </div>
+
+          <button id="export-log-btn" class="w-full py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-extrabold text-sky-400 hover:text-white transition-all flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>EXPORT CHAT LOG (TXT)</span>
+          </button>
+        </aside>
+
+      </main>
+
+      <!-- VIEW 2: ANALYTICS VIEW -->
+      <main id="view-analytics" class="hidden flex-1 w-full max-w-7xl mx-auto p-4 flex flex-col gap-4 overflow-y-auto h-[calc(100vh-64px-40px)]">
+        
+        <!-- Score grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Total Questions Asked</span>
+            <p id="analytics-total-queries" class="text-3xl font-extrabold mt-1.5 text-white">0</p>
+          </div>
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Similarity Match Rate</span>
+            <p id="analytics-match-rate" class="text-3xl font-extrabold mt-1.5 text-sky-400">0%</p>
+          </div>
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Average Confidence</span>
+            <p id="analytics-avg-confidence" class="text-3xl font-extrabold mt-1.5 text-amber-400">0%</p>
+          </div>
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Database FAQs</span>
+            <p id="analytics-total-faqs" class="text-3xl font-extrabold mt-1.5 text-emerald-400">0</p>
+          </div>
+        </div>
+
+        <!-- Progress bars / lists -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Database Categories
+            </h2>
+            <div id="analytics-categories-list" class="space-y-4">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Most Triggered FAQs
+            </h2>
+            <div id="analytics-triggered-list" class="space-y-4">
+              <div class="text-xs text-slate-600 italic">No triggers recorded in this session.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History table logs -->
+        <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
+          <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Detailed Query Log (Session)
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-900 text-slate-500 uppercase font-bold tracking-wider text-[10px]">
+                  <th class="py-3 px-4 font-mono">Timestamp</th>
+                  <th class="py-3 px-4">User Question</th>
+                  <th class="py-3 px-4 text-right">Confidence Match</th>
+                  <th class="py-3 px-4 text-center">Rating</th>
+                </tr>
+              </thead>
+              <tbody id="analytics-log-table-body" class="divide-y divide-slate-900/50">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- VIEW 3: FAQ ADMIN PORTAL -->
+      <main id="view-admin" class="hidden flex-1 w-full max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 overflow-hidden h-[calc(100vh-64px-40px)]">
+        
+        <!-- Left: Form to Add FAQ -->
+        <aside class="w-full lg:w-96 flex flex-col gap-4 h-full overflow-y-auto flex-shrink-0">
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Add New FAQ
+            </h2>
+            <form id="add-faq-form" class="space-y-4">
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Category</label>
+                <select id="form-category" class="w-full bg-slate-950 border border-slate-900 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none">
+                  <option value="General">General</option>
+                  <option value="Billing">Billing</option>
+                  <option value="Technical">Technical</option>
+                  <option value="Security">Security</option>
+                  <option value="Account">Account</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Question</label>
+                <input type="text" id="form-question" placeholder="e.g. How do I delete my profile?" class="w-full bg-slate-950 border border-slate-900 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500/50" required>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Answer</label>
+                <textarea id="form-answer" placeholder="Provide answer..." rows="4" class="w-full bg-slate-950 border border-slate-900 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 resize-none" required></textarea>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl transition-colors">
+                Save FAQ & Retrain
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-sm space-y-3">
+            <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Database Tools</h2>
+            <button id="open-upload-btn" class="w-full py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-900 text-slate-300 font-bold text-xs rounded-xl transition-all">
+              Bulk Upload JSON File
+            </button>
+            <button id="reset-faqs-btn" class="w-full py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-900 text-slate-400 hover:text-rose-400 font-bold text-xs rounded-xl transition-all">
+              Revert Defaults
+            </button>
+          </div>
+        </aside>
+
+        <!-- Right: FAQ Document list -->
+        <section class="flex-1 bg-slate-900/10 border border-slate-900 rounded-2xl p-5 flex flex-col overflow-hidden backdrop-blur-sm h-full">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 flex-shrink-0">
+            <div>
+              <h2 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">FAQ Document Catalog</h2>
+              <p class="text-[10px] text-slate-600 font-mono mt-0.5">Live indexed FAQ documents</p>
+            </div>
+            
+            <div class="relative w-full sm:w-64">
+              <input type="text" id="admin-search" placeholder="Search FAQ text..." class="w-full bg-slate-950/80 border border-slate-900 rounded-xl px-4 py-2 text-xs focus:outline-none">
+            </div>
+          </div>
+
+          <div id="admin-faqs-list" class="flex-1 overflow-y-auto space-y-3.5 pr-1 scrollbar-thin">
+            <!-- Dynamic list of FAQs -->
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="h-10 bg-slate-950 border-t border-slate-900 px-6 flex items-center justify-between text-[10px] text-slate-600 font-mono z-40 flex-shrink-0">
+      <div>NLP core: spaCy Lemmatizer + scikit-learn TF-IDF</div>
+      <div id="footer-latency">Matched latency: 0ms</div>
+      <div class="text-slate-500">Made with <span class="text-rose-500">♥</span> by <span class="text-slate-300 font-bold">Mamta Sharma</span></div>
+    </footer>
+
+    <!-- FILE UPLOAD MODAL -->
+    <div id="upload-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+        <button id="close-modal-btn" class="absolute right-4 top-4 text-slate-400 hover:text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-sm font-extrabold uppercase tracking-widest text-slate-300 mb-4 flex items-center gap-2">
+          Bulk Upload FAQ JSON
+        </h3>
+        
+        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+          Select a `.json` file containing a list of objects with "question" and "answer" fields.
+        </p>
+
+        <div class="border border-dashed border-slate-800 rounded-xl p-6 bg-slate-950/50 hover:bg-slate-950 transition-all text-center relative cursor-pointer group">
+          <input type="file" id="json-file-input" accept=".json" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+          <svg class="w-8 h-8 text-slate-600 group-hover:text-sky-500 mx-auto mb-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V4a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+          <span class="text-xs font-bold text-slate-400 group-hover:text-slate-200 transition-colors">Choose JSON File</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frontend Script -->
+    <script src="/static/script.js"></script>
+  </body>
+</html>
